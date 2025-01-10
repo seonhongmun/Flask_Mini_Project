@@ -1,4 +1,4 @@
-from app.models import db, Image, ImageStatus  # 데이터베이스 객체와 테이블
+from app.models import db, Image  # 데이터베이스 객체와 테이블
 from sqlalchemy.exc import SQLAlchemyError  # 데이터베이스 작업 중 발생하는 오류를 처리
 
 

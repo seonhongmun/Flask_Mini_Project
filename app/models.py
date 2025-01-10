@@ -32,7 +32,7 @@ class GenderStatus(Enum): #값 제한 gender = male, female
 
 class ImageStatus(Enum): #값 제한 image = main, sub
     main = "main" #메인 main.html -> 이미지파일
-    sub = "sub"  # 질문 Question -> 각 질문의 이미지파일 
+    sub = "sub"  # -> 각 질문의 이미지파일 
 
 
 class User(BaseModel):  #User (기본모델을 가져옴(상속))
