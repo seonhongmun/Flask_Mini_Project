@@ -1,0 +1,11 @@
+.idea
+.venv
+.DS_Store
+migrations
+
+*/*.log
+*/*.pot
+*/*.pyc
+*/__pycache__
+__pycache__, *.pyc
+*/media

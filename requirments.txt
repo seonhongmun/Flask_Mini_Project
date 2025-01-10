@@ -1,0 +1,15 @@
+#플라스크
+flask
+
+# 데이터베이스 관련 라이브러리
+pymysql
+sqlalchemy
+flask-sqlalchemy
+flask-migrate
+
+# 데이터 통신 관련 라이브러리
+gunicorn
+
+# 코드 수정 라이브러리
+black
+isort
