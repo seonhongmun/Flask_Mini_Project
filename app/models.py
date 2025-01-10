@@ -4,6 +4,7 @@ from zoneinfo import ZoneInfo
 
 from config import db
 
+
 KST = ZoneInfo("Asia/Seoul")  # 한국 표준시 설정
 
 class BaseModel(db.Model):  #기본 베이스

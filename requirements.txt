@@ -8,6 +8,7 @@ flask-sqlalchemy
 flask-migrate
 flask-smorest
 
+
 # 데이터 통신 관련 라이브러리
 gunicorn
 

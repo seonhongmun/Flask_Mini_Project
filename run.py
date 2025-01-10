@@ -4,3 +4,4 @@ application = create_app()  #가져온 함수를 실행하여 객체 생성하�
 
 if __name__ == "__main__":  # flask 실행 app.run(디버그 기능 켬) 
     application.run(debug=True)
+
