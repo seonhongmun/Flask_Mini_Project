@@ -5,7 +5,6 @@ from sqlalchemy.exc import SQLAlchemyError  # SQLAlchemy 예외 처리
 # Blueprint 생성 - 선택지 관련 API 관리
 choices_bp = Blueprint("choices", __name__, url_prefix="/questions")
 
-
 @choices_bp.route("/<int:question_id>/choices", methods=["POST"])
 def create_choices(question_id):
     """
@@ -41,7 +40,6 @@ def create_choices(question_id):
         # SQLAlchemy 오류 발생 시 롤백 처리
         db.session.rollback()
         return jsonify({"error": f"선택지 생성 중 오류가 발생했습니다: {str(e)}"}), 500
-
 
 @choices_bp.route("/<int:question_id>/choices", methods=["GET"])
 def get_choices(question_id):

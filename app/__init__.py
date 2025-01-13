@@ -33,10 +33,12 @@ def create_app():
     from app.views.questions import questions_bp
     from app.views.users import user_bp
     from app.views.choices import choices_bp
+    from app.views.answers import answers_bp
 
     app.register_blueprint(images_bp, url_prefix='/images')  # 이미지 관련 API
     app.register_blueprint(questions_bp, url_prefix='/questions')  # 질문 관련 API
     app.register_blueprint(user_bp, url_prefix='/user')  # 사용자 관련 API
     app.register_blueprint(choices_bp, url_prefix='/questions')
+    app.register_blueprint(answers_bp, url_prefix='/answers')  # 답안 관련 API
 
     return app  # 생성된 Flask 애플리케이션 반환
