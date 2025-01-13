@@ -37,4 +37,4 @@ def create_answer_route():
     data = request.json
     answer = answers.create_answer(data['user_id'], data['choice_id'])
     return jsonify({'id': answer.id, 'user_id': answer.user_id, 'choice_id': answer.choice_id})
-    #생성된 답변 정보를 json하여 반환한다. 
+    #생성된 답변 정보를 json하여 반환한다.  
