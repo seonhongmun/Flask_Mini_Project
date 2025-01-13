@@ -1,91 +1,128 @@
-from flask_smorest import Blueprint
-from flask.views import MethodView
-from marshmallow import Schema, fields
+from flask import Blueprint, jsonify, request
+from app.models import db, Question, Image
 from sqlalchemy.exc import SQLAlchemyError
-from app.models import db, Question
 
-# Flask-Smorest Blueprint
+# Blueprint 생성
 questions_bp = Blueprint("questions", __name__, url_prefix="/questions")
 
-# Schema Definitions
-class QuestionRequestSchema(Schema):
-    title = fields.String(required=True, description="질문 제목")
-    sqe = fields.Integer(required=True, description="질문 순서")
-    image_id = fields.Integer(required=True, description="이미지 ID")
 
-
-class QuestionResponseSchema(Schema):
-    id = fields.Integer(description="질문 ID")
-    title = fields.String(description="질문 제목")
-    is_active = fields.Boolean(description="활성 상태")
-    sqe = fields.Integer(description="질문 순서")
-    image_id = fields.Integer(description="이미지 ID")
-    created_at = fields.DateTime(description="생성 시간")
-    updated_at = fields.DateTime(description="수정 시간")
-
-
-class QuestionListResponseSchema(Schema):
-    questions = fields.List(fields.Nested(QuestionResponseSchema), description="질문 목록")
-
-# API Endpoints
-@questions_bp.route("/")
-class Questions(MethodView):
-    @questions_bp.response(200, QuestionListResponseSchema)
-    def get(self):
-        """
-        모든 질문 조회
-        """
-        questions = Question.query.all()
-        return {"questions": [question.to_dict() for question in questions]}
-
-@questions_bp.arguments(QuestionRequestSchema)
-@questions_bp.response(201, QuestionResponseSchema)
-def post(self, data):
+@questions_bp.route("/", methods=["GET"])
+def get_all_questions():
     """
-    질문 생성
+    모든 질문 조회
     """
     try:
-        # 이미지 ID가 유효한지 확인
-        if not db.session.query(Image).filter_by(id=data["image_id"]).first():
-            return {"message": f"이미지 ID {data['image_id']}를 찾을 수 없습니다."}, 400
+        # 데이터베이스에서 모든 질문 가져오기
+        questions = Question.query.all()
+        
+        # 질문 데이터를 JSON으로 변환
+        result = [
+            {
+                "id": question.id,
+                "title": question.title,
+                "is_active": question.is_active,
+                "sqe": question.sqe,
+                "image_id": question.image_id
+            }
+            for question in questions
+        ]
 
+        return jsonify(result), 200  # 성공 응답
+    except Exception as e:
+        # 에러 발생 시 오류 메시지 반환
+        return jsonify({"error": f"질문 조회 중 오류가 발생했습니다: {str(e)}"}), 500
+
+
+@questions_bp.route("/", methods=["POST"])
+def create_question():
+    """
+    새로운 질문 생성
+    """
+    try:
+        # 클라이언트 요청 데이터 가져오기
+        data = request.json
+
+        # 필수 데이터 확인
+        required_fields = ["title", "sqe", "image_id"]
+        missing_fields = [field for field in required_fields if field not in data]
+        if missing_fields:
+            return jsonify({"error": f"필수 필드가 누락되었습니다: {', '.join(missing_fields)}"}), 400
+
+        # 이미지 ID 유효성 확인
+        image = Image.query.get(data["image_id"])
+        if not image:
+            return jsonify({"error": f"이미지 ID {data['image_id']}를 찾을 수 없습니다."}), 400
+
+        # 새 질문 생성
         question = Question(
             title=data["title"],
             sqe=data["sqe"],
             image_id=data["image_id"]
         )
+
+        # 데이터베이스에 저장
         db.session.add(question)
         db.session.commit()
-        return question.to_dict()
+
+        # 성공적으로 생성된 질문 반환
+        return jsonify({
+            "id": question.id,
+            "title": question.title,
+            "is_active": question.is_active,
+            "sqe": question.sqe,
+            "image_id": question.image_id
+        }), 201
 
     except SQLAlchemyError as e:
+        # 데이터베이스 에러 처리
         db.session.rollback()
-        return {"message": "질문 생성 중 오류가 발생했습니다.", "details": str(e)}, 500
+        return jsonify({"error": f"질문 생성 중 오류가 발생했습니다: {str(e)}"}), 500
 
-@questions_bp.route("/<int:question_id>")
-class QuestionDetail(MethodView):
-    @questions_bp.response(200, QuestionResponseSchema)
-    def get(self, question_id):
-        """
-        특정 질문 조회
-        """
+
+@questions_bp.route("/<int:question_id>", methods=["GET"])
+def get_question_by_id(question_id):
+    """
+    특정 질문 조회
+    """
+    try:
+        # 데이터베이스에서 질문 ID로 조회
         question = Question.query.get(question_id)
         if not question:
-            return {"message": f"ID {question_id}에 해당하는 질문을 찾을 수 없습니다."}, 404
-        return question.to_dict()
+            return jsonify({"error": f"ID {question_id}의 질문을 찾을 수 없습니다."}), 404
 
-    def delete(self, question_id):
-        """
-        특정 질문 삭제
-        """
+        # 질문 데이터 반환
+        return jsonify({
+            "id": question.id,
+            "title": question.title,
+            "is_active": question.is_active,
+            "sqe": question.sqe,
+            "image_id": question.image_id
+        }), 200
+
+    except Exception as e:
+        # 에러 발생 시 오류 메시지 반환
+        return jsonify({"error": f"질문 조회 중 오류가 발생했습니다: {str(e)}"}), 500
+
+
+@questions_bp.route("/<int:question_id>", methods=["DELETE"])
+def delete_question(question_id):
+    """
+    특정 질문 삭제
+    """
+    try:
+        # 데이터베이스에서 질문 ID로 조회
         question = Question.query.get(question_id)
         if not question:
-            return {"message": f"ID {question_id}에 해당하는 질문을 찾을 수 없습니다."}, 404
+            return jsonify({"error": f"ID {question_id}의 질문을 찾을 수 없습니다."}), 404
 
-        try:
-            db.session.delete(question)
-            db.session.commit()
-            return {"message": f"ID {question_id}의 질문이 삭제되었습니다."}, 200
-        except SQLAlchemyError as e:
-            db.session.rollback()
-            return {"message": "질문 삭제 중 오류가 발생했습니다.", "details": str(e)}, 500
+        # 질문 삭제
+        db.session.delete(question)
+        db.session.commit()
+
+        # 성공 메시지 반환
+        return jsonify({"message": f"ID {question_id}의 질문이 삭제되었습니다."}), 200
+
+    except SQLAlchemyError as e:
+        # 데이터베이스 에러 처리
+        db.session.rollback()
+        return jsonify({"error": f"질문 삭제 중 오류가 발생했습니다: {str(e)}"}), 500

@@ -31,10 +31,12 @@ def create_app():
     # 블루프린트 가져오기 및 등록
     from app.views.images import images_bp
     from app.views.questions import questions_bp
-    from app.views.users import users_bp
+    from app.views.users import user_bp
+    from app.views.choices import choices_bp
 
     app.register_blueprint(images_bp, url_prefix='/images')  # 이미지 관련 API
     app.register_blueprint(questions_bp, url_prefix='/questions')  # 질문 관련 API
-    app.register_blueprint(users_bp, url_prefix='/users')  # 사용자 관련 API
+    app.register_blueprint(user_bp, url_prefix='/user')  # 사용자 관련 API
+    app.register_blueprint(choices_bp, url_prefix='/questions')
 
     return app  # 생성된 Flask 애플리케이션 반환
