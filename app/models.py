@@ -56,7 +56,6 @@ class User(BaseModel):  #User (기본모델을 가져옴(상속))
             "updated_at": self.updated_at.isoformat(),
         }
 
-
 class Image(BaseModel):  #image 
     __tablename__ = "images"  #테이블 = images
     url = db.Column(db.TEXT, nullable=False)  #url 주소 text

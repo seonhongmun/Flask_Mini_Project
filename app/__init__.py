@@ -1,7 +1,7 @@
 from config import db   # config 모듈에서 db 객체 가져옴
 from flask import Flask  # flask 클래스에서 애플리케이션 객제 가져옴
 from flask_migrate import Migrate  # 데이터베이스 마이그레이션 도구로 데이터베이스 스키마 변경기능
-from app.views.images import images_bp
+
 
 import app.models  # models에서 정의된 모델을 가져옴
 
@@ -18,9 +18,9 @@ def create_app():  # create 함수 정의
     db.init_app(application)  #db를 flask에 연결
 
     migrate.init_app(application, db) # 마이그레이션을 flask에 연결
-
+    from app.views.images import images_bp
     # 블루 프린트 등록
-    app.register_blueprint(images_bp, url_prefix='/api')
+    application.register_blueprint(images_bp, url_prefix='/api')
 
     return application  #flask 객체 반환
 
