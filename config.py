@@ -2,6 +2,7 @@ from flask_smorest import Api #api설계시 Swagger 생성, 검증, Blueprint사
 from flask_sqlalchemy import SQLAlchemy #데이터베이스, 파이썬 객체 매핑
 
 db = SQLAlchemy()  #db 객체 초기화(생성)
+api = Api()
 
 # 데베 설정
 class Config:

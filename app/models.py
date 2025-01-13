@@ -1,7 +1,6 @@
 from datetime import datetime 
 from enum import Enum
 from zoneinfo import ZoneInfo
-
 from config import db
 
 
@@ -60,7 +59,6 @@ class Image(BaseModel):  #image
     __tablename__ = "images"  #테이블 = images
     url = db.Column(db.TEXT, nullable=False)  #url 주소 text
     type = db.Column(db.Enum(ImageStatus), nullable=False)  #이미지 유형 (image status = main, sub)
-
     questions = db.relationship("Question", back_populates="image") #Question 테이블 참조 1:N관계 
 
     def to_dict(self): #images클래스에서 가져와 id, url, type, 생성시간, 수정시간을 json화
@@ -78,9 +76,7 @@ class Question(BaseModel): #Question
     title = db.Column(db.String(100), nullable=False)  #질문
     is_active = db.Column(db.Boolean, nullable=False, default=True) #활성여부? 질문활성, 비활성?
     sqe = db.Column(db.Integer, nullable=False)  #질문순서
-
     image_id = db.Column(db.Integer, db.ForeignKey("images.id"), nullable=False)  #image테이블 id와 foreignkey 관계 not null
-
     image = db.relationship("Image", back_populates="questions") #image테이블 참조 1:N관계 
 
     def to_dict(self):  #Question테이블에서 가져와 id, title, 활성상태, 순서, image, 생성시간, 수정시간 json화 
@@ -128,3 +124,4 @@ class Answer(BaseModel):  #Answer
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
         }
+    

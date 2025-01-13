@@ -1,26 +1,40 @@
-from config import db   # config 모듈에서 db 객체 가져옴
-from flask import Flask  # flask 클래스에서 애플리케이션 객제 가져옴
-from flask_migrate import Migrate  # 데이터베이스 마이그레이션 도구로 데이터베이스 스키마 변경기능
+from config import db, api  # 데이터베이스와 API 객체 가져오기
+from flask import Flask  # Flask 애플리케이션 객체
+from flask_migrate import Migrate  # 데이터베이스 마이그레이션 도구
+
+migrate = Migrate()  # 마이그레이션 객체 생성
 
 
-import app.models  # models에서 정의된 모델을 가져옴
+def create_app():
+    """
+    Flask 애플리케이션 생성 및 초기화 함수
+    """
+    app = Flask(__name__)  # Flask 애플리케이션 인스턴스 생성
 
-migrate = Migrate()  # 마이그레이션 객체 생성 애플리케이션과 데이터베이스 초기화진행
+    # Flask 설정
+    app.config.from_object("config.Config")  # config.py에서 설정 로드
+    app.secret_key = "oz_form_secret"  # 비밀키 설정
 
+    # OpenAPI 및 Swagger UI 설정
+    app.config['API_TITLE'] = 'oz_form'
+    app.config['API_VERSION'] = '1.0'
+    app.config['OPENAPI_VERSION'] = '3.1.3'
+    app.config['OPENAPI_URL_PREFIX'] = '/'  # OpenAPI 문서의 기본 URL
+    app.config['OPENAPI_SWAGGER_UI_PATH'] = '/swagger-ui'
+    app.config['OPENAPI_SWAGGER_UI_URL'] = "https://cdn.jsdelivr.net/npm/swagger-ui-dist/"
 
-def create_app():  # create 함수 정의 
-    application = Flask(__name__)  # flask 인스턴스 생성
+    # 확장 초기화
+    db.init_app(app)  # SQLAlchemy 데이터베이스 초기화
+    api.init_app(app)  # Flask-Smorest API 초기화
+    migrate.init_app(app, db)  # Flask-Migrate 초기화
 
-    # config클래스 속성을 사용해 설정 (데이터베이스URl, 디버그 옵션, 기타 설정)
-    application.config.from_object("config.Config") 
-    application.secret_key = "oz_form_secret" # 비밀키 설정 
-
-    db.init_app(application)  #db를 flask에 연결
-
-    migrate.init_app(application, db) # 마이그레이션을 flask에 연결
+    # 블루프린트 가져오기 및 등록
     from app.views.images import images_bp
-    # 블루 프린트 등록
-    application.register_blueprint(images_bp, url_prefix='/api')
+    from app.views.questions import questions_bp
+    from app.views.users import users_bp
 
-    return application  #flask 객체 반환
+    app.register_blueprint(images_bp, url_prefix='/images')  # 이미지 관련 API
+    app.register_blueprint(questions_bp, url_prefix='/questions')  # 질문 관련 API
+    app.register_blueprint(users_bp, url_prefix='/users')  # 사용자 관련 API
 
+    return app  # 생성된 Flask 애플리케이션 반환

@@ -1,9 +1,10 @@
 # 선택지 생성
-from flask import Blueprint, request, jsonify
+from flask import request, jsonify
 from app.models import db, Question, Choices
+from flask_smorest import Blueprint
 from sqlalchemy.exc import SQLAlchemyError
 
-questions_bp = Blueprint('questions', __name__)
+questions_bp = Blueprint('questions', __name__, url_prefix='questions')
 
 @questions_bp.route('/questions/<int:question_id>/choices', methods=['POST'])
 def create_choices(question_id):
