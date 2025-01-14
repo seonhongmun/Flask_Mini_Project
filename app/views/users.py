@@ -12,14 +12,14 @@ def create_user():
     data = request.get_json()
 
     # 데이터 유효성 검사
-    username = data.get("username")
+    name = data.get("name")
     email = data.get("email")
     age = data.get("age")
     gender = data.get("gender")
 
     missing_fields = []
-    if not username:
-        missing_fields.append("username")
+    if not name:
+        missing_fields.append("name")
     if not email:
         missing_fields.append("email")
     if not age:
@@ -36,7 +36,7 @@ def create_user():
     # 유저 생성
     try:
         new_user = User(
-            username=username,
+            name=name,
             email=email,
             age=AgeStatus[age],
             gender=GenderStatus[gender],
@@ -44,7 +44,7 @@ def create_user():
         db.session.add(new_user)
         db.session.commit()
         return jsonify({
-            "message": f"{username}님 회원가입을 축하합니다.",
+            "message": f"{name}님 회원가입을 축하합니다.",
             "user": new_user.to_dict(),
         }), 201
     except SQLAlchemyError as e:
