@@ -31,16 +31,19 @@ def create_app():
     migrate.init_app(app, db)  # Flask-Migrate 초기화
 
     # 블루프린트 가져오기 및 등록
+    from app.routes import api_bp
     from app.views.images import images_bp
     from app.views.questions import questions_bp
     from app.views.users import users_bp
     from app.views.choices import choices_bp
     from app.views.answers import answers_bp
 
-    api.register_blueprint(images_bp, url_prefix='/images')  # 이미지 관련 API
+    api.register_blueprint(api_bp, url_prefix='/')
+    api.register_blueprint(images_bp,)  # 이미지 관련 API
     api.register_blueprint(questions_bp, url_prefix='/questions')  # 질문 관련 API
-    api.register_blueprint(users_bp, url_prefix='/users')  # 사용자 관련 API
+    api.register_blueprint(users_bp)  # 사용자 관련 API
     api.register_blueprint(choices_bp, url_prefix='/choices')  # 선택지 관련 API
-    api.register_blueprint(answers_bp, url_prefix='/answers')  # 답안 관련 API
+    api.register_blueprint(answers_bp)  # 답안 관련 API
 
     return app  # 생성된 Flask 애플리케이션 반환
+

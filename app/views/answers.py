@@ -4,10 +4,10 @@ from sqlalchemy.exc import SQLAlchemyError
 from app.models import db, Answer, User, Choices, Question
 
 # Blueprint 생성
-answers_bp = Blueprint("answers", __name__, url_prefix="/answers")
+answers_bp = Blueprint("answers", __name__)
 
 
-@answers_bp.route("/", methods=["POST"])
+@answers_bp.route("/answer", methods=["POST"])
 def create_answer():
     """
     답변 생성 API
@@ -54,7 +54,7 @@ def create_answer():
         return jsonify({"error": f"답변 생성 중 오류가 발생했습니다: {str(e)}"}), 500
 
 
-@answers_bp.route("/<int:user_id>", methods=["GET"])
+@answers_bp.route("/answer/<int:user_id>", methods=["GET"])
 def get_answers_by_user(user_id):
     """
     특정 사용자가 제출한 답변 조회 API
@@ -88,3 +88,13 @@ def get_answers_by_user(user_id):
 
     except SQLAlchemyError as e:
         return jsonify({"error": f"답변 조회 중 오류가 발생했습니다: {str(e)}"}), 500
+    
+@answers_bp.route("/submit", methods=["POST"])
+def submit_answers():
+        """답변 제출하기"""
+        data = request.get_json()
+        for answer in data:
+            new_answer = Answer(user_id=answer["userId"], choice_id=answer["choiceId"])
+            db.session.add(new_answer)
+        db.session.commit()
+        return jsonify({"message": f"User: {data[0]['userId']}'s answers Success Create"}), 201

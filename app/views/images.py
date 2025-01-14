@@ -4,7 +4,12 @@ from app.models import db, Image, ImageStatus  # 데이터베이스 모델 및 �
 from sqlalchemy.exc import SQLAlchemyError  # 데이터베이스 예외 처리
 
 # Blueprint 생성
-images_bp = Blueprint("images", __name__, url_prefix="/images")
+images_bp = Blueprint("images", __name__, url_prefix="/image")
+
+# 메인 이미지 조회 
+@images_bp.route('/main', methods=['GET'])
+def get_main_image():
+    return jsonify({"image": "https://t1.daumcdn.net/cafeattach/mEr9/85ba2b8047841542b99b6b2a284d2bd129d7a2a8"}), 200
 
 # 모든 이미지 조회
 @images_bp.route("/", methods=["GET"])

@@ -3,7 +3,7 @@ from flask_smorest import Blueprint
 from app.models import User, AgeStatus, GenderStatus, db
 
 # 사용자 관련 API를 위한 Blueprint 생성
-users_bp = Blueprint('user', __name__, url_prefix='/users')
+users_bp = Blueprint('user', __name__)
 
 
 def create_user(username: str, age: str, gender: str, email: str) -> User:
@@ -38,8 +38,8 @@ def create_user(username: str, age: str, gender: str, email: str) -> User:
     return new_user
 
 
-@users_bp.route('', methods=['POST'])
-def register_user():
+@users_bp.route('/signup', methods=['POST'])
+def signup():
     """
     사용자 등록 API
     """
@@ -66,7 +66,7 @@ def register_user():
 
         # 성공 응답 반환
         return jsonify({
-            "message": "유저가 성공적으로 등록되었습니다.",
+            "message": f"{new_user.name}유저가 성공적으로 등록되었습니다.",
             "user": {
                 "id": new_user.id,
                 "name": new_user.name,
@@ -85,7 +85,7 @@ def register_user():
         return jsonify({"error": f"오류: {str(e)}"}), 500
 
 
-@users_bp.route('/<int:user_id>', methods=['GET'])
+@users_bp.route('/users/<int:user_id>', methods=['GET'])
 def get_user_by_id(user_id: int):
     """
     특정 유저 조회 API

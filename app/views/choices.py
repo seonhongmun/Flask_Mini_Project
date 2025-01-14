@@ -6,7 +6,7 @@ from sqlalchemy.exc import SQLAlchemyError  # SQLAlchemy 예외 처리
 # Blueprint 생성 - 선택지 관련 API 관리
 choices_bp = Blueprint("choices", __name__, url_prefix="/questions")
 
-@choices_bp.route("/<int:question_id>/choices", methods=["POST"])
+@choices_bp.route("/", methods=["POST"])
 def create_choices(question_id):
     """
     특정 질문에 대한 선택지 생성
@@ -42,23 +42,10 @@ def create_choices(question_id):
         db.session.rollback()
         return jsonify({"error": f"선택지 생성 중 오류가 발생했습니다: {str(e)}"}), 500
 
-@choices_bp.route("/<int:question_id>/choices", methods=["GET"])
+@choices_bp.route("/<int:question_id>", methods=["GET"])
 def get_choices(question_id):
-    """
-    특정 질문에 대한 선택지 조회
-    """
-    try:
-        # 질문 ID로 질문 객체 조회
-        question = Question.query.get(question_id)
-        if not question:
-            return jsonify({"error": f"ID {question_id}에 해당하는 질문을 찾을 수 없습니다."}), 404
-
-        # 해당 질문에 연결된 선택지 조회
-        choices = Choices.query.filter_by(question_id=question_id).all()
-
-        # 선택지 데이터를 JSON으로 변환하여 반환
-        return jsonify([choice.to_dict() for choice in choices]), 200
-
-    except Exception as e:
-        # 기타 오류 발생 시 처리
-        return jsonify({"error": f"선택지 조회 중 오류가 발생했습니다: {str(e)}"}), 500
+    """특정 질문의 선택지 가져오기"""
+    choices = Choices.query.filter_by(question_id=question_id).all()
+    return jsonify({
+        "choices": [choice.to_dict() for choice in choices]
+    }), 200

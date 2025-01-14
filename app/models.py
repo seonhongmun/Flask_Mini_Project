@@ -78,6 +78,7 @@ class Question(BaseModel): #Question
     sqe = db.Column(db.Integer, nullable=False)  #질문순서
     image_id = db.Column(db.Integer, db.ForeignKey("images.id"), nullable=False)  #image테이블 id와 foreignkey 관계 not null
     image = db.relationship("Image", back_populates="questions") #image테이블 참조 1:N관계 
+    choices = db.relationship("Choices", backref="question", lazy="dynamic")
 
     def to_dict(self):  #Question테이블에서 가져와 id, title, 활성상태, 순서, image, 생성시간, 수정시간 json화 
         return {
