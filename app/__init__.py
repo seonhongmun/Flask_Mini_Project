@@ -38,11 +38,11 @@ def create_app():
     from app.views.choices import choices_bp
     from app.views.answers import answers_bp
 
-    api.register_blueprint(api_bp, url_prefix='/')
+    api.register_blueprint(api_bp)
     api.register_blueprint(images_bp,)  # 이미지 관련 API
-    api.register_blueprint(questions_bp, url_prefix='/questions')  # 질문 관련 API
+    api.register_blueprint(questions_bp)  # 질문 관련 API
     api.register_blueprint(users_bp)  # 사용자 관련 API
-    api.register_blueprint(choices_bp, url_prefix='/choices')  # 선택지 관련 API
+    api.register_blueprint(choices_bp)  # 선택지 관련 API
     api.register_blueprint(answers_bp)  # 답안 관련 API
 
     return app  # 생성된 Flask 애플리케이션 반환

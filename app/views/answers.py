@@ -1,5 +1,5 @@
 from flask import request, jsonify
-from flask_smorest import Blueprint
+from flask_smorest import Blueprint, abort
 from sqlalchemy.exc import SQLAlchemyError
 from app.models import db, Answer, User, Choices, Question
 
@@ -7,70 +7,87 @@ from app.models import db, Answer, User, Choices, Question
 answers_bp = Blueprint("answers", __name__)
 
 
-@answers_bp.route("/answer", methods=["POST"])
-def create_answer():
+@answers_bp.route("/submit", methods=["POST"])
+def submit_answers():
     """
-    답변 생성 API
-    - 특정 질문(question)에 대해 특정 선택지(choice)를 선택한 답변을 생성합니다.
+    답변 제출하기
+    ---
+    요청:
+    - userId: 사용자 ID
+    - choiceId: 선택지 ID
+    요청 예시:
+    [
+    { "userId": 1, "choiceId": 2 },
+    { "userId": 1, "choiceId": 4 }
+    ]
+    응답:
+    - 성공: 답변 제출 성공 메시지
+    - 실패: 오류 메시지
     """
     try:
         # 요청 데이터 가져오기
-        data = request.json
+        data = request.get_json()
 
-        # 필수 필드 확인
-        if not all(key in data for key in ["user_id", "choice_id"]):
-            return jsonify({"error": "필수 필드가 누락되었습니다. 'user_id'와 'choice_id'를 입력하세요."}), 400
+        if not data or not isinstance(data, list):
+            abort(400, message="유효하지 않은 요청 데이터입니다. JSON 배열을 제공하세요.")
 
-        # 데이터 유효성 검사
-        user = User.query.get(data["user_id"])
-        if not user:
-            return jsonify({"error": f"ID {data['user_id']}에 해당하는 사용자가 존재하지 않습니다."}), 404
+        # 각 답변 데이터 처리
+        for answer_data in data:
+            user_id = answer_data.get("userId")
+            choice_id = answer_data.get("choiceId")
 
-        choice = Choices.query.get(data["choice_id"])
-        if not choice:
-            return jsonify({"error": f"ID {data['choice_id']}에 해당하는 선택지가 존재하지 않습니다."}), 404
+            if not user_id or not choice_id:
+                abort(400, message="각 답변에는 'userId'와 'choiceId'가 필요합니다.")
 
-        question = Question.query.get(choice.question_id)
-        if not question:
-            return jsonify({"error": f"선택지가 연결된 질문(ID {choice.question_id})을 찾을 수 없습니다."}), 404
+            # 사용자와 선택지 유효성 확인
+            user = User.query.get(user_id)
+            if not user:
+                abort(404, message=f"ID {user_id}에 해당하는 사용자가 존재하지 않습니다.")
 
-        # 답변 생성
-        answer = Answer(user_id=data["user_id"], choice_id=data["choice_id"])
-        db.session.add(answer)
+            choice = Choices.query.get(choice_id)
+            if not choice:
+                abort(404, message=f"ID {choice_id}에 해당하는 선택지가 존재하지 않습니다.")
+
+            # 답변 생성
+            new_answer = Answer(user_id=user_id, choice_id=choice_id)
+            db.session.add(new_answer)
+
+        # 커밋
         db.session.commit()
 
+        # 성공 메시지 반환
         return jsonify({
-            "message": "답변이 성공적으로 생성되었습니다.",
-            "answer": {
-                "id": answer.id,
-                "user_id": answer.user_id,
-                "choice_id": answer.choice_id,
-                "question_id": question.id
-            }
+            "message": f"User: {data[0]['userId']}'s answers submitted successfully."
         }), 201
 
     except SQLAlchemyError as e:
         db.session.rollback()
-        return jsonify({"error": f"답변 생성 중 오류가 발생했습니다: {str(e)}"}), 500
+        abort(500, message=f"답변 저장 중 오류가 발생했습니다: {str(e)}")
 
 
-@answers_bp.route("/answer/<int:user_id>", methods=["GET"])
+@answers_bp.route("/answers/<int:user_id>", methods=["GET"])
 def get_answers_by_user(user_id):
     """
-    특정 사용자가 제출한 답변 조회 API
+    특정 사용자의 답변 조회
+    ---
+    요청:
+    - user_id: 사용자 ID
+    응답:
+    - 성공: 해당 사용자의 답변 리스트
+    - 실패: 사용자나 답변을 찾을 수 없다는 메시지
     """
     try:
-        # 사용자 유효성 확인
+        # 사용자 확인
         user = User.query.get(user_id)
         if not user:
-            return jsonify({"error": f"ID {user_id}에 해당하는 사용자가 존재하지 않습니다."}), 404
+            abort(404, message=f"ID {user_id}에 해당하는 사용자가 존재하지 않습니다.")
 
-        # 사용자가 제출한 답변 조회
+        # 사용자의 답변 조회
         answers = Answer.query.filter_by(user_id=user_id).all()
         if not answers:
             return jsonify({"message": "이 사용자는 아직 답변을 제출하지 않았습니다."}), 200
 
-        # 답변 데이터를 JSON으로 변환
+        # 응답 데이터 구성
         result = []
         for answer in answers:
             choice = Choices.query.get(answer.choice_id)
@@ -87,14 +104,4 @@ def get_answers_by_user(user_id):
         return jsonify(result), 200
 
     except SQLAlchemyError as e:
-        return jsonify({"error": f"답변 조회 중 오류가 발생했습니다: {str(e)}"}), 500
-    
-@answers_bp.route("/submit", methods=["POST"])
-def submit_answers():
-        """답변 제출하기"""
-        data = request.get_json()
-        for answer in data:
-            new_answer = Answer(user_id=answer["userId"], choice_id=answer["choiceId"])
-            db.session.add(new_answer)
-        db.session.commit()
-        return jsonify({"message": f"User: {data[0]['userId']}'s answers Success Create"}), 201
+        abort(500, message=f"답변 조회 중 오류가 발생했습니다: {str(e)}")
