@@ -37,7 +37,7 @@ class ImageStatus(Enum): #값 제한 image = main, sub
 
 class User(BaseModel):  #User (기본모델을 가져옴(상속))
     __tablename__ = "users"  #테이블이름 = users
-    name = db.Column(db.String(10), nullable=False) #이름
+    username = db.Column(db.String(10), nullable=False) #이름
     age = db.Column(db.Enum(AgeStatus), nullable=False)  #나이(agestatus = 10~50)
     gender = db.Column(db.Enum(GenderStatus), nullable=False)  # 성별(genderstatus = male, female)
     email = db.Column(db.String(120), unique=True, nullable=False)  # 이메일
@@ -45,7 +45,7 @@ class User(BaseModel):  #User (기본모델을 가져옴(상속))
     def to_dict(self):  #user클래스에서 가져와 id, name, age, gender, email, 생성시간, 수정시간을 json화 
         return {
             "id": self.id,
-            "name": self.name,
+            "username": self.username,
             "age": self.age.value if hasattr(self.age, "value") else self.age,
             "gender": (
                 self.gender.value if hasattr(self.gender, "value") else self.gender

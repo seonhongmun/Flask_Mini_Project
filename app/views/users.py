@@ -25,7 +25,7 @@ def create_user(username: str, age: str, gender: str, email: str) -> User:
 
     # 새로운 사용자 생성
     new_user = User(
-        name=username,
+        username=username,
         age=AgeStatus(age),
         gender=GenderStatus(gender),
         email=email
@@ -66,10 +66,10 @@ def signup():
 
         # 성공 응답 반환
         return jsonify({
-            "message": f"{new_user.name}유저가 성공적으로 등록되었습니다.",
+            "message": f"{new_user.username}유저가 성공적으로 등록되었습니다.",
             "user": {
                 "id": new_user.id,
-                "name": new_user.name,
+                "username": new_user.username,
                 "age": new_user.age.value,
                 "gender": new_user.gender.value,
                 "email": new_user.email
@@ -103,7 +103,7 @@ def get_user_by_id(user_id: int):
         return jsonify({
             "user": {
                 "id": user.id,
-                "name": user.name,
+                "username": user.username,
                 "age": user.age.value,
                 "gender": user.gender.value,
                 "email": user.email
