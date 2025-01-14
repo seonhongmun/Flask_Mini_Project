@@ -17,7 +17,12 @@ def signup():
     gender = data.get('gender')
     email = data.get('email')
 
-    new_user = User(name=name, age=age, gender=gender, email=email)
+    new_user = User(
+        name=name,
+        email=email,
+        age=AgeStatus[age],
+        gender=GenderStatus[gender]
+        )
     db.session.add(new_user)
     db.session.commit()
 
@@ -32,12 +37,6 @@ def signup():
     }), 201
 
     return new_user
-
-
-
-
-
-
 
 
 
