@@ -8,5 +8,5 @@ with app.app_context():
     print("Initialized the database.")
 
 if __name__ == "__main__":  # flask 실행 app.run(디버그 기능 켬) 
-    app.run(debug=True)
+    app.run(debug=True, port=5001)
 

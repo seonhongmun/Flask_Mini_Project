@@ -1,4 +1,5 @@
-from flask import Blueprint, jsonify, request  # Flask 모듈 가져오기
+from flask import jsonify, request  # Flask 모듈 가져오기
+from flask_smorest import Blueprint
 from app.models import db, Image, ImageStatus  # 데이터베이스 모델 및 열거형 상태 가져오기
 from sqlalchemy.exc import SQLAlchemyError  # 데이터베이스 예외 처리
 

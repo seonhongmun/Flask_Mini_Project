@@ -1,8 +1,9 @@
-from flask import request, jsonify, Blueprint
+from flask import request, jsonify
+from flask_smorest import Blueprint
 from app.models import User, AgeStatus, GenderStatus, db
 
 # 사용자 관련 API를 위한 Blueprint 생성
-user_bp = Blueprint('user', __name__, url_prefix='/users')
+users_bp = Blueprint('user', __name__, url_prefix='/users')
 
 
 def create_user(username: str, age: str, gender: str, email: str) -> User:
@@ -37,7 +38,7 @@ def create_user(username: str, age: str, gender: str, email: str) -> User:
     return new_user
 
 
-@user_bp.route('', methods=['POST'])
+@users_bp.route('', methods=['POST'])
 def register_user():
     """
     사용자 등록 API
@@ -84,7 +85,7 @@ def register_user():
         return jsonify({"error": f"오류: {str(e)}"}), 500
 
 
-@user_bp.route('/<int:user_id>', methods=['GET'])
+@users_bp.route('/<int:user_id>', methods=['GET'])
 def get_user_by_id(user_id: int):
     """
     특정 유저 조회 API

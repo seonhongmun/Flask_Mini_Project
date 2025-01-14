@@ -1,4 +1,5 @@
-from flask import Blueprint, request, jsonify
+from flask import request, jsonify
+from flask_smorest import Blueprint
 from sqlalchemy.exc import SQLAlchemyError
 from app.models import db, Answer, User, Choices, Question
 

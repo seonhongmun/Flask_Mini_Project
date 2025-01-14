@@ -1,4 +1,5 @@
-from flask import Blueprint, request, jsonify
+from flask import request, jsonify
+from flask_smorest import Blueprint
 from app.views import users, questions, choices, answers, images, answers
 
 api = Blueprint('api', __name__)  # 블루프린트 생성
