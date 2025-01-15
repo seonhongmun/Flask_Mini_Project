@@ -4,9 +4,9 @@ from sqlalchemy.exc import SQLAlchemyError
 from app.models import db, Question, Image, Choices
 
 # Blueprint 생성
-questions_bp = Blueprint("questions", __name__, url_prefix="/questions")
+questions_bp = Blueprint("questions", __name__)
 
-@questions_bp.route("/", methods=["GET"])
+@questions_bp.route("/question", methods=["GET"])
 def get_all_questions():
 
     try:
@@ -25,73 +25,43 @@ def get_all_questions():
     except SQLAlchemyError as e:
         abort(500, message=f"질문 조회 중 오류가 발생했습니다: {str(e)}")
 
-#총 질문 갯수 카운트
-@questions_bp.route("/count", methods=["GET"])
-def get_questions_count():
-    try:
-        # 데이터베이스에서 질문 개수 조회
-        total_questions = Question.query.count()
-        return jsonify({"total": total_questions}), 200
-    except SQLAlchemyError as e:
-        abort(500, message=f"질문 개수 조회 중 오류가 발생했습니다: {str(e)}")
+@questions_bp.route("/questions/count", methods=["GET"])
+def count_questions():
+    """질문 개수 확인"""
+    total_questions = Question.query.count()
+    return jsonify({"total": total_questions}), 200
 
-@questions_bp.route("/<int:question_id>", methods=["GET"])
-def get_question_by_id(question_id):
-    try:
-        question = Question.query.get(question_id)
-        if not question:
-            abort(404, message=f"ID {question_id}의 질문을 찾을 수 없습니다.")
-
-        choices = [
-            choice.to_dict() for choice in question.choices
-        ]
-        return jsonify({
+@questions_bp.route("/question/<int:question_id>", methods=["GET"])
+def get_question(question_id):
+    """특정 질문 가져오기"""
+    question = Question.query.get(question_id)
+    if not question:
+        return jsonify({"message": f"ID {question_id}의 질문을 찾을 수 없습니다."}), 404
+    return jsonify({
+        "question": {
             "id": question.id,
             "title": question.title,
-            "is_active": question.is_active,
-            "sqe": question.sqe,
-            "image_id": question.image_id,
-            "choices": choices,
-        }), 200
-    except SQLAlchemyError as e:
-        abort(500, message=f"질문 조회 중 오류가 발생했습니다: {str(e)}")
+            "image": {"url": question.image.url} if question.image else None,
+        }
+    }), 200
 
-
-@questions_bp.route("/", methods=["POST"])
+@questions_bp.route("/question", methods=["POST"])
 def create_question():
+    """새 질문 추가"""
     data = request.get_json()
-    title = data.get("title")
-    sqe = data.get("sqe")
-    image_id = data.get("image_id")
-    choices_data = data.get("choices", [])
-
-    if not title or not sqe or not image_id:
-        abort(400, message="title, sqe, image_id는 필수 필드입니다.")
-
-    try:
-        # 질문 생성
-        question = Question(title=title, sqe=sqe, image_id=image_id, is_active=True)
-        db.session.add(question)
-        db.session.commit()  # 질문 ID 확보를 위해 커밋
-
-        # 선택지 생성
-        for choice in choices_data:
-            new_choice = Choices(
-                content=choice.get("content"),
-                is_active=choice.get("is_active", True),
-                sqe=choice.get("sqe", 1),
-                question_id=question.id,
-            )
-            db.session.add(new_choice)
-        db.session.commit()
-
-        return jsonify({"message": f"Question '{title}' and choices created successfully!"}), 201
-    except SQLAlchemyError as e:
-        db.session.rollback()
-        abort(500, message=f"질문 생성 중 오류가 발생했습니다: {str(e)}")
+    question = Question(title=data["title"], sqe=data["sqe"], image_id=data["image_id"])
+    db.session.add(question)
+    db.session.commit()
+    for choice_data in data.get("choices", []):
+        choice = Choices(
+            content=choice_data["content"], sqe=choice_data["sqe"], question_id=question.id
+        )
+        db.session.add(choice)
+    db.session.commit()
+    return jsonify({"message": f"Title: {data['title']} question Success Create"}), 201
 
 
-@questions_bp.route("/<int:question_id>", methods=["DELETE"])
+@questions_bp.route("/question/<int:question_id>", methods=["DELETE"])
 def delete_question(question_id):
     try:
         question = Question.query.get(question_id)

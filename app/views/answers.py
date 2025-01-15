@@ -11,35 +11,25 @@ answers_bp = Blueprint("answers", __name__)
 def submit_answers():
     """
     답변 제출하기
-    ---
-    요청:
-    - userId: 사용자 ID
-    - choiceId: 선택지 ID
-    요청 예시:
-    [
-    { "userId": 1, "choiceId": 2 },
-    { "userId": 1, "choiceId": 4 }
-    ]
-    응답:
-    - 성공: 답변 제출 성공 메시지
-    - 실패: 오류 메시지
     """
     try:
         # 요청 데이터 가져오기
         data = request.get_json()
 
+        # 요청 데이터 유효성 검사
         if not data or not isinstance(data, list):
             abort(400, message="유효하지 않은 요청 데이터입니다. JSON 배열을 제공하세요.")
 
-        # 각 답변 데이터 처리
+        # 각 답변 처리
         for answer_data in data:
             user_id = answer_data.get("userId")
             choice_id = answer_data.get("choiceId")
 
+            # 필수 필드 검사
             if not user_id or not choice_id:
                 abort(400, message="각 답변에는 'userId'와 'choiceId'가 필요합니다.")
 
-            # 사용자와 선택지 유효성 확인
+            # 사용자와 선택지 존재 여부 확인
             user = User.query.get(user_id)
             if not user:
                 abort(404, message=f"ID {user_id}에 해당하는 사용자가 존재하지 않습니다.")
@@ -48,11 +38,11 @@ def submit_answers():
             if not choice:
                 abort(404, message=f"ID {choice_id}에 해당하는 선택지가 존재하지 않습니다.")
 
-            # 답변 생성
+            # 답변 데이터 생성
             new_answer = Answer(user_id=user_id, choice_id=choice_id)
             db.session.add(new_answer)
 
-        # 커밋
+        # 데이터베이스 커밋
         db.session.commit()
 
         # 성공 메시지 반환
@@ -61,6 +51,7 @@ def submit_answers():
         }), 201
 
     except SQLAlchemyError as e:
+        # 오류 발생 시 롤백 및 메시지 반환
         db.session.rollback()
         abort(500, message=f"답변 저장 중 오류가 발생했습니다: {str(e)}")
 
