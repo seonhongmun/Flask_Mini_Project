@@ -2,6 +2,7 @@ import requests
 from flask import request, jsonify, abort, Response
 from flask_smorest import Blueprint
 from sqlalchemy.exc import SQLAlchemyError
+from flask.views import MethodView
 from app.models import db, Image, ImageStatus
 
 # Blueprint 생성
@@ -12,16 +13,11 @@ def get_main_image():
     """
     메인 이미지를 조회하고, Flask가 중계(proxy)하도록 설정
     """
-    try:
-        # type이 main인 이미지 조회
-        main_image = Image.query.filter_by(type=ImageStatus.main).first()
-        if not main_image:
-            abort(404, description="메인 이미지를 찾을 수 없습니다.")
-
-        # 외부 이미지 요청을 Flask가 중계
-        return proxy_image(main_image.url)
-    except SQLAlchemyError as e:
-        abort(500, description=f"메인 이미지 조회 중 오류가 발생했습니다: {str(e)}")
+    # type이 main인 이미지 조회
+    main_image = Image.query.filter_by(type=ImageStatus.main).first()
+    if not main_image:
+        abort(404, description="메인 이미지를 찾을 수 없습니다.")
+    return jsonify({"image":main_image.url}), 200
 
 
 @images_bp.route("/<int:image_id>", methods=["GET"])
