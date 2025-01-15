@@ -13,37 +13,21 @@ def submit_answers():
     답변 제출하기
     """
     data = request.get_json()  # 요청 데이터 가져오기
-
-    # 요청 데이터 유효성 검사
-    if not data or not isinstance(data, list):
-        abort(400, message="유효하지 않은 요청 데이터입니다. JSON 배열을 제공하세요.")
-
-    try:
         # 각 답변 처리
-        for answer_data in data:
-            user_id = answer_data.get("userId")
-            choice_id = answer_data.get("choiceId")
+    for answer_data in data:
+        user_id = answer_data.get("userId")
+        choice_id = answer_data.get("choiceId")
 
-            if not user_id or not choice_id:
-                abort(400, message="'userId'와 'choiceId'는 필수 항목입니다.")
+        if not user_id or not choice_id:
+            abort(400, message="'userId'와 'choiceId'는 필수 항목입니다.")
 
-            # 사용자와 선택지 존재 여부 확인
-            if not User.query.get(user_id):
-                abort(404, message=f"ID {user_id}에 해당하는 사용자가 존재하지 않습니다.")
-            if not Choices.query.get(choice_id):
-                abort(404, message=f"ID {choice_id}에 해당하는 선택지가 존재하지 않습니다.")
+        # 답변 데이터 생성 및 추가
+        new_answer = Answer(user_id=user_id, choice_id=choice_id)
+        db.session.add(new_answer)
 
-            # 답변 데이터 생성 및 추가
-            new_answer = Answer(user_id=user_id, choice_id=choice_id)
-            db.session.add(new_answer)
+    db.session.commit()  # 데이터베이스 저장
 
-        db.session.commit()  # 데이터베이스 저장
-
-        return jsonify({"message": f"User: {data[0]['userId']}'s answers submitted successfully."}), 201
-
-    except Exception as e:
-        db.session.rollback()  # 오류 발생 시 롤백
-        abort(500, message=f"답변 저장 중 오류가 발생했습니다: {str(e)}")
+    return {"msg":"Successfully created answers.",}, 201
 
 @answers_bp.route("/answers/<int:user_id>", methods=["GET"])
 def get_answers_by_user(user_id):
