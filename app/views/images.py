@@ -8,32 +8,42 @@ images_bp = Blueprint("images", __name__, url_prefix="/image")
 
 @images_bp.route("/main", methods=["GET"])
 def get_main_image():
-    """
-    메인 이미지 조회
-    """
     try:
         # type이 main인 이미지 조회
         main_image = Image.query.filter_by(type=ImageStatus.main).first()
-        
-        # 이미지가 없는 경우 처리
         if not main_image:
-            return jsonify({"message": "메인 이미지를 찾을 수 없습니다."}), 404
+            abort(404, message="메인 이미지를 찾을 수 없습니다.")
 
-        # 이미지 URL 반환
+        # 이미지 URL만 JSON으로 반환
         return jsonify({"image": main_image.url}), 200
-
     except SQLAlchemyError as e:
-        # 데이터베이스 오류 처리
-        return jsonify({"message": f"메인 이미지 조회 중 오류가 발생했습니다: {str(e)}"}), 500
-    
+        abort(500, message=f"메인 이미지 조회 중 오류가 발생했습니다: {str(e)}")
+
+#이미지 생성
 @images_bp.route("/", methods=["POST"])
 def create_image():
-    """새 이미지를 추가합니다"""
     data = request.get_json()
-    new_image = Image(url=data["url"], type=data["type"])
-    db.session.add(new_image)
-    db.session.commit()
-    return jsonify({"message": f"ID: {new_image.id} Image Success Create"}), 201
+    url = data.get("url")
+    image_type = data.get("type")
+
+    # 데이터 유효성 검사
+    if not url or not image_type:
+        abort(400, message="url과 type은 필수 필드입니다.")
+    if image_type not in ImageStatus.__members__:
+        abort(400, message=f"유효하지 않은 이미지 유형입니다: {image_type}")
+
+    try:
+        # 새 이미지 생성
+        new_image = Image(url=url, type=ImageStatus[image_type])
+        db.session.add(new_image)
+        db.session.commit()
+        return jsonify({
+            "message": f"ID {new_image.id} 이미지가 성공적으로 생성되었습니다.",
+            "image": new_image.to_dict(),
+        }), 201
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        abort(500, message=f"이미지 생성 중 오류가 발생했습니다: {str(e)}")
 
 # 특정 이미지 조회
 @images_bp.route("/<int:image_id>", methods=["GET"])
