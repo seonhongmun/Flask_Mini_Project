@@ -3,10 +3,10 @@ from flask.views import MethodView
 from flask_smorest import Blueprint
 from ..models import Answer, db
 
-answer_blp = Blueprint('Answer', 'answer', url_prefix='/submit')
+answer_bp = Blueprint('Answer', 'answer', url_prefix='/submit')
 
 # 답변 정보 생성
-@answer_blp.route('/', methods=["POST"])
+@answer_bp.route('/', methods=["POST"])
 class AnswerCreate(MethodView):
     def post(self):
         data = request.json
@@ -31,7 +31,7 @@ class AnswerCreate(MethodView):
 
 
 # 답변 조회
-@answer_blp.route('/<int:user_id>/<int:choice_id>')
+@answer_bp.route('/<int:user_id>/<int:choice_id>')
 class AnswerGet(MethodView):
     def get(self,user_id, choice_id):
         answers = Answer.query.filter_by(user_id=user_id, choice_id=choice_id).all()
@@ -40,7 +40,7 @@ class AnswerGet(MethodView):
         return [answer.to_dict() for answer in answers]
 
 # 특정 답변 수정
-@answer_blp.route('/admin/<int:user_id>/<int:choice_id>')
+@answer_bp.route('/admin/<int:user_id>/<int:choice_id>')
 class PostAnswer(MethodView):
     def put(self, user_id, choice_id):
         # choice_id에 맞는 Answer 객체를 찾기
