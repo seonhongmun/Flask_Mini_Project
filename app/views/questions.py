@@ -59,24 +59,3 @@ def create_question():
         db.session.add(choice)
     db.session.commit()
     return jsonify({"message": f"Title: {data['title']} question Success Create"}), 201
-
-
-@questions_bp.route("/question/<int:question_id>", methods=["DELETE"])
-def delete_question(question_id):
-    try:
-        question = Question.query.get(question_id)
-        if not question:
-            abort(404, message=f"ID {question_id}의 질문을 찾을 수 없습니다.")
-
-        # 질문과 연관된 선택지 삭제
-        for choice in question.choices:
-            db.session.delete(choice)
-
-        # 질문 삭제
-        db.session.delete(question)
-        db.session.commit()
-
-        return jsonify({"message": f"ID {question_id}의 질문이 삭제되었습니다."}), 200
-    except SQLAlchemyError as e:
-        db.session.rollback()
-        abort(500, message=f"질문 삭제 중 오류가 발생했습니다: {str(e)}")

@@ -11,7 +11,7 @@ images_bp = Blueprint("images", __name__, url_prefix="/image")
 @images_bp.route("/main", methods=["GET"])
 def get_main_image():
     """
-    메인 이미지를 조회하고, Flask가 중계(proxy)하도록 설정
+    메인 이미지를 조회
     """
     # type이 main인 이미지 조회
     main_image = Image.query.filter_by(type=ImageStatus.main).first()

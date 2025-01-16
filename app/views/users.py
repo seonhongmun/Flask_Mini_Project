@@ -57,31 +57,3 @@ def get_user_by_id(user_id):
         abort(500, message=f"유저 조회 중 오류가 발생했습니다: {str(e)}")
 
     return new_user
-
-# def signup():
-#     data = request.json # 요청 데이터 받아오기 
-
-# #데이터값 가져오기
-#     name = data.get('name')
-#     age = data.get('age')
-#     gender = data.get('gender')
-#     email = data.get('email')
-
-#     new_user = User(
-#         name=name,
-#         email=email,
-#         age=AgeStatus[age],
-#         gender=GenderStatus[gender]
-#         )
-#     db.session.add(new_user)
-#     db.session.commit()
-
-# #유저생성함수
-#     if not new_user:
-#         return jsonify({'message': '이미 존재하는 계정 입니다.'}), 400
-
-#     # 유저 정보 반환
-#     return jsonify({
-#         'message': f'{new_user.name}님 회원가입을 축하합니다',
-#         'user_id': new_user.id
-#     }), 201
