@@ -6,35 +6,59 @@ from app.models import db, User, AgeStatus, GenderStatus
 # Blueprint 생성
 users_bp = Blueprint("users", __name__)
 
-#유저 생성/signup
+# 유저 생성/signup
 @users_bp.route("/signup", methods=["POST"])
 def signup():
-    data = request.json # 요청 데이터 받아오기 
+    try:
+        # 요청 데이터 받아오기
+        data = request.json
 
-#데이터값 가져오기
-    name = data.get('name')
-    age = data.get('age')
-    gender = data.get('gender')
-    email = data.get('email')
+        # 요청 데이터에서 필드 추출
+        name = data.get('name')
+        age = data.get('age')
+        gender = data.get('gender')
+        email = data.get('email')
 
-    new_user = User(
-        name=name,
-        email=email,
-        age=AgeStatus[age],
-        gender=GenderStatus[gender]
+        # 필수 필드 유효성 검사
+        if not name or not age or not gender or not email:
+            return jsonify({'message': '모든 필드는 필수 항목입니다.'}), 400
+
+        # 이메일 중복 체크
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            return jsonify({'message': '이미 존재하는 계정입니다.'}), 400
+
+        # AgeStatus와 GenderStatus Enum 값 유효성 검사
+        try:
+            age_status = AgeStatus[age]  # 유효하지 않은 age 값이면 KeyError 발생
+            gender_status = GenderStatus[gender]  # 유효하지 않은 gender 값이면 KeyError 발생
+        except KeyError as e:
+            return jsonify({'message': f'유효하지 않은 값입니다: {str(e)}'}), 400
+
+        # 새로운 유저 생성
+        new_user = User(
+            name=name,
+            email=email,
+            age=age_status,
+            gender=gender_status
         )
-    db.session.add(new_user)
-    db.session.commit()
+        db.session.add(new_user)  # 세션에 추가
+        db.session.commit()  # 데이터베이스에 커밋
 
-#유저생성함수
-    if not new_user:
-        return jsonify({'message': '이미 존재하는 계정 입니다.'}), 400
+        # 성공 메시지 반환
+        return jsonify({
+            'message': f'{new_user.name}님 회원가입을 축하합니다.',
+            'user_id': new_user.id
+        }), 201
 
-    # 유저 정보 반환
-    return jsonify({
-        'message': f'{new_user.name}님 회원가입을 축하합니다',
-        'user_id': new_user.id
-    }), 201
+    except SQLAlchemyError as e:
+        # 데이터베이스 관련 오류 처리
+        db.session.rollback()  # 트랜잭션 롤백
+        return jsonify({'message': f'데이터베이스 오류가 발생했습니다: {str(e)}'}), 500
+
+    except Exception as e:
+        # 그 외 예상치 못한 오류 처리
+        return jsonify({'message': f'예상치 못한 오류가 발생했습니다: {str(e)}'}), 500
 
 #전체 유저 조회
 @users_bp.route("/users", methods=["GET"])
